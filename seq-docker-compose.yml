@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+  seq:
+    restart: unless-stopped
+    image: datalust/seq
+    env_file:
+      - envs/seq.env
+    ports:
+      - 3104:80
+      - 3105:5341
+    
