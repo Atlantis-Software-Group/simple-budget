@@ -1,0 +1,114 @@
+version: '3.9'
+networks:
+  local:
+    name: local
+services:
+  react-ui:
+    build: 
+      context: ../ui.react
+      target: dev
+      dockerfile: Dockerfile.dev
+    image: ui-react-dev
+    ports: 
+      - 3100:3100
+    volumes:
+      - ../ui.react:/usr/src/app    
+      - /usr/src/app/node_modules
+    env_file:
+      - envs/ui.env
+    networks:
+      - local
+    depends_on:
+      - bff
+  bff:  
+    build:
+      context: ../bff/src/simple-budget.bff
+      target: dev
+      dockerfile: Dockerfile.dev
+    image: bff-dev
+    ports:
+      - 3101:5290
+    volumes:
+      - ../bff/src/simple-budget.bff:/app/src
+    env_file:
+      - envs/api.env
+    networks:
+      - local
+    depends_on:
+      - identity
+      - api
+  api: 
+    build:
+      context: ../api/src/simple-budget.api
+      target: dev
+      dockerfile: Dockerfile.dev
+    image: api-dev
+    ports:
+      - 3102:5036
+    volumes:
+      - ../api/src/simple-budget.api:/app/src
+    env_file:
+      - envs/api.env
+    networks:
+      - local
+    depends_on:
+      - db
+  # identity: 
+  #   build:
+  #     context: ../identity/src/asg.identity
+  #     target: dev
+  #     dockerfile: Dockerfile.dev
+  #   image: identity-dev
+  #   ports:
+  #     - 3103:5001
+  #   volumes:
+  #     - ../identity/src/asg.identity:/app/src
+  #     - /app/src/bin
+  #     - /app/src/obj
+  #   env_file:
+  #     - envs/identity.env
+  #   networks:
+  #     - local
+  #   depends_on:
+  #     - identity-db
+  identity: 
+    build:
+      context: ../identity/src/asg.identity
+      target: dev
+      dockerfile: Dockerfile.dev
+    image: identity-dev
+    volumes:
+      - ../identity/src/asg.identity:/app/src
+      - /app/src/bin
+      - /app/src/obj
+    env_file:
+      - envs/identity.env
+    networks:
+      - local
+    depends_on:
+      - seq
+      - db
+  seq:
+    restart: unless-stopped
+    image: datalust/seq
+    env_file:
+      - envs/seq.env
+    ports:
+      - 3104:80
+      - 3105:5341      
+    networks:
+      - local
+    depends_on:
+      - db
+  db:
+    restart: unless-stopped
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 3106:1433
+    env_file:
+      - envs/mssql.env
+    container_name: sqldb
+    hostname: sqldb    
+    networks:
+      - local
+  
