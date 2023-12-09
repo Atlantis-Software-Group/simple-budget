@@ -1,5 +1,6 @@
 #!/bin/sh
 
+cd ..
 cd envs
 git update-index --no-skip-worktree api.env
 git update-index --no-skip-worktree bff.env
@@ -8,3 +9,4 @@ git update-index --no-skip-worktree mssql.env
 git update-index --no-skip-worktree seq.env
 git update-index --no-skip-worktree ui.env
 cd ..
+cd utilities
