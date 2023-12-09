@@ -19,7 +19,7 @@ docker run --rm -it -p externalport:internalport <imagename>:<tag>
 
 ## Docker compose command
 ```
-docker compose  -f "docker-compose.yml" up -d identity 
+docker-compose -f "simple-budget.yml" up -d identity 
 ```
 # SQL Server
 

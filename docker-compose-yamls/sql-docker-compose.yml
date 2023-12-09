@@ -6,6 +6,6 @@ services:
     ports:
       - 3106:1433
     env_file:
-      - envs/mssql.env
+      - ../envs/mssql.env
     container_name: sqldb
     hostname: sqldb
