@@ -53,32 +53,17 @@ services:
       - local
     depends_on:
       - db
-  # identity: 
-  #   build:
-  #     context: ../identity/src/asg.identity
-  #     target: dev
-  #     dockerfile: Dockerfile.dev
-  #   image: identity-dev
-  #   ports:
-  #     - 3103:5001
-  #   volumes:
-  #     - ../identity/src/asg.identity:/app/src
-  #     - /app/src/bin
-  #     - /app/src/obj
-  #   env_file:
-  #     - envs/identity.env
-  #   networks:
-  #     - local
-  #   depends_on:
-  #     - identity-db
   identity: 
     build:
       context: ../identity/src/asg.identity
       target: dev
       dockerfile: Dockerfile.dev
     image: identity-dev
+    ports:
+      - 3103:5001
     volumes:
       - ../identity/src/asg.identity:/app/src
+      - ./certs:/app/certs
       - /app/src/bin
       - /app/src/obj
     env_file:
@@ -98,8 +83,6 @@ services:
       - 3105:5341      
     networks:
       - local
-    depends_on:
-      - db
   db:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -111,4 +94,6 @@ services:
     hostname: sqldb    
     networks:
       - local
+    depends_on:
+      - seq
   
