@@ -30,6 +30,13 @@ password: from ENV file
 
 # Git
 
+## Enable prune behaviour for every fetch
+[StackOverflow](https://stackoverflow.com/a/68049939/2426627)
+
+```
+git config --global fetch.prune true
+```
+
 ## Ignore updates to environment variable files
 
 to get git to ignore updates to file
