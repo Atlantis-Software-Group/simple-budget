@@ -47,6 +47,9 @@ services:
       - 3102:5036
     volumes:
       - ../api/src/simple-budget.api:/app/src
+      - ./certs:/app/certs
+      - /app/src/bin
+      - /app/src/obj
     env_file:
       - envs/api.env
     networks:
