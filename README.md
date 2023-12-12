@@ -59,3 +59,7 @@ like wise, execute the git-no-skip-worktree-envs script to tell git to capture c
 ```
 sh git-no-skip-worktree-envs.sh
 ```
+
+## Create Self-signed SSL Certs
+https://deliciousbrains.com/ssl-certificate-authority-for-local-https-development/
+https://elgwhoppo.com/2013/04/18/combine-crt-and-key-files-into-a-pfx-with-openssl/

@@ -47,9 +47,8 @@ services:
       - 3102:5036
     volumes:
       - ../api/src/simple-budget.api:/app/src
-      - ./certs:/app/certs
-      - /app/src/bin
-      - /app/src/obj
+      - ./certs:/https/
+      - ./certs:/usr/local/share/ca-certificates/
     env_file:
       - envs/api.env
     networks:
@@ -66,15 +65,13 @@ services:
       - 3103:5001
     volumes:
       - ../identity/src/asg.identity:/app/src
-      - ./certs:/app/certs
-      - /app/src/bin
-      - /app/src/obj
+      - ./certs:/https/
+      - ./certs:/usr/local/share/ca-certificates/
     env_file:
       - envs/identity.env
     networks:
       - local
-    depends_on:
-      - seq
+    depends_on:    
       - db
   seq:
     restart: unless-stopped
