@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "../api"
+		},
+		{
+			"path": "../bff"
+		},
+		{
+			"path": "../identity"
+		},
+		{
+			"path": "../simple-budget"
+		},
+		{
+			"path": "../ui.react"
+		}
+	]
+}
