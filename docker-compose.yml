@@ -38,35 +38,33 @@ services:
       - identity
       - api
   api: 
-    build:
-      context: ../api/src/simple-budget.api
-      target: dev
-      dockerfile: Dockerfile.dev
-    image: api-dev
+    # build:
+    #   context: ../api/src/simple-budget.api
+    #   target: dev
+    #   dockerfile: Dockerfile.dev
+    image: dev-net8.0:0.1.1
     ports:
       - 3102:5036
     volumes:
       - ../api/src/simple-budget.api:/app/src
-      - ./certs:/https/
-      - ./certs:/usr/local/share/ca-certificates/
     env_file:
-      - envs/api.env
+      - envs/api.env      
     networks:
       - local
     depends_on:
-      - db
+      - seq
   identity: 
-    build:
-      context: ../identity/src/asg.identity
-      target: dev
-      dockerfile: Dockerfile.dev
-    image: identity-dev
+    image: identity-dev:0.0.3
+    stdin_open: true
+    tty: true
     ports:
       - 3103:5001
     volumes:
       - ../identity/src/asg.identity:/app/src
-      - ./certs:/https/
-      - ./certs:/usr/local/share/ca-certificates/
+      - ./certs/https:/https
+      - ./certs/ca:/usr/local/share/ca-certificates
+      - /app/src/bin
+      - /app/src/obj
     env_file:
       - envs/identity.env
     networks:
