@@ -70,7 +70,8 @@ services:
     networks:
       - local
     depends_on:    
-      - db
+      db:
+        condition: service_healthy      
   seq:
     restart: unless-stopped
     image: datalust/seq
@@ -92,6 +93,10 @@ services:
     hostname: sqldb    
     networks:
       - local
-    depends_on:
-      - seq
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
   
