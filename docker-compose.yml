@@ -20,7 +20,14 @@ services:
     networks:
       - local
     depends_on:
-      - bff
+      bff:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail https://localhost:5001/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
   bff:  
     restart: unless-stopped
     build:
@@ -33,12 +40,22 @@ services:
     volumes:
       - ../bff/src/simple-budget.bff:/app/src
     env_file:
-      - envs/api.env
+      - envs/bff.env
     networks:
       - local
     depends_on:
-      - identity
-      - api
+      identity:
+        condition: service_healthy
+      api:
+        condition: service_healthy   
+      seq:
+        condition: service_started
+    healthcheck:
+      test: curl --fail https://localhost:5290/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
   api: 
     restart: unless-stopped
     image: api-dev:0.0.1
@@ -57,8 +74,12 @@ services:
     depends_on:
       identity:
         condition: service_healthy
+      api-db:
+        condition: service_healthy   
+      seq:
+        condition: service_started
     healthcheck:
-      test: curl --fail https://localhost:5001/health || exit 1
+      test: curl --fail https://localhost:5036/health || exit 1
       interval: 10s
       timeout: 3s
       retries: 10
@@ -89,6 +110,8 @@ services:
     depends_on:    
       identity-db:
         condition: service_healthy      
+      seq:
+        condition: service_started
   seq:
     restart: unless-stopped
     image: datalust/seq
