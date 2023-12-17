@@ -55,7 +55,8 @@ services:
     networks:
       - local
     depends_on:
-      - identity
+      identity:
+        condition: service_healthy
   identity: 
     restart: unless-stopped
     image: identity-dev:0.0.3
@@ -80,14 +81,16 @@ services:
     restart: unless-stopped
     image: datalust/seq
     volumes:
-      - ./certs/seq:/data/Certificates
+      - ./certs/https:/https
+      - ./certs/ca:/usr/local/share/ca-certificates
+      - ./seq:/seqinit
     env_file:
       - envs/seq.env
     ports:
       - 3104:443
       - 3107:45341
     networks:
-      - local
+      - local    
   db:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -104,5 +107,4 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 10s
-  
+      start_period: 10s  
