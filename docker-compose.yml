@@ -79,11 +79,13 @@ services:
   seq:
     restart: unless-stopped
     image: datalust/seq
+    volumes:
+      - ./certs/seq:/data/Certificates
     env_file:
       - envs/seq.env
     ports:
-      - 3104:80
-      - 3105:5341      
+      - 3104:443
+      - 3107:45341
     networks:
       - local
   db:
