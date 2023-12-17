@@ -57,6 +57,12 @@ services:
     depends_on:
       identity:
         condition: service_healthy
+    healthcheck:
+      test: curl --fail https://localhost:5001/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
   identity: 
     restart: unless-stopped
     image: identity-dev:0.0.3
@@ -81,7 +87,7 @@ services:
       retries: 10
       start_period: 10s  
     depends_on:    
-      db:
+      identity-db:
         condition: service_healthy      
   seq:
     restart: unless-stopped
@@ -94,14 +100,31 @@ services:
       - envs/seq.env
     ports:
       - 3104:443
-      - 3107:45341
+      - 3105:45341
     networks:
       - local    
-  db:
+  identity-db:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - 3106:1433
+    env_file:
+      - envs/mssql.env
+    container_name: sqldb
+    hostname: sqldb    
+    networks:
+      - local
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
+  api-db:
+    restart: unless-stopped
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 3107:1433
     env_file:
       - envs/mssql.env
     container_name: sqldb
