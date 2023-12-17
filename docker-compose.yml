@@ -74,6 +74,12 @@ services:
       - envs/identity.env
     networks:
       - local
+    healthcheck:
+      test: curl --fail https://localhost:5001/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
     depends_on:    
       db:
         condition: service_healthy      
