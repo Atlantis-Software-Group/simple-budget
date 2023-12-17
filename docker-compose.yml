@@ -4,6 +4,7 @@ networks:
     name: local
 services:
   react-ui:
+    restart: unless-stopped
     build: 
       context: ../ui.react
       target: dev
@@ -21,6 +22,7 @@ services:
     depends_on:
       - bff
   bff:  
+    restart: unless-stopped
     build:
       context: ../bff/src/simple-budget.bff
       target: dev
@@ -38,6 +40,7 @@ services:
       - identity
       - api
   api: 
+    restart: unless-stopped
     image: api-dev:0.0.1
     ports:
       - 3102:5036
@@ -54,6 +57,7 @@ services:
     depends_on:
       - identity
   identity: 
+    restart: unless-stopped
     image: identity-dev:0.0.3
     stdin_open: true
     tty: true
