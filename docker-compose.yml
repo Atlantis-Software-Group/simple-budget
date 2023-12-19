@@ -4,6 +4,7 @@ networks:
     name: local
 services:
   react-ui:
+    restart: unless-stopped
     build: 
       context: ../ui.react
       target: dev
@@ -19,26 +20,45 @@ services:
     networks:
       - local
     depends_on:
-      - bff
+      bff:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail https://localhost:5001/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
   bff:  
-    build:
-      context: ../bff/src/simple-budget.bff
-      target: dev
-      dockerfile: Dockerfile.dev
-    image: bff-dev
+    restart: unless-stopped
+    image: bff
     ports:
       - 3101:5290
     volumes:
       - ../bff/src/simple-budget.bff:/app/src
+      - ./certs/https:/https
+      - ./certs/ca:/usr/local/share/ca-certificates
+      - /app/src/bin
+      - /app/src/obj
     env_file:
-      - envs/api.env
+      - envs/bff.env
     networks:
       - local
     depends_on:
-      - identity
-      - api
+      identity:
+        condition: service_healthy
+      api:
+        condition: service_healthy   
+      seq:
+        condition: service_started
+    healthcheck:
+      test: curl --fail https://localhost:5290/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
   api: 
-    image: api-dev:0.0.1
+    restart: unless-stopped
+    image: api
     ports:
       - 3102:5036
     volumes:
@@ -52,11 +72,21 @@ services:
     networks:
       - local
     depends_on:
-      - identity
+      identity:
+        condition: service_healthy
+      api-db:
+        condition: service_healthy   
+      seq:
+        condition: service_started
+    healthcheck:
+      test: curl --fail https://localhost:5036/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
   identity: 
-    image: identity-dev:0.0.3
-    stdin_open: true
-    tty: true
+    restart: unless-stopped
+    image: identity
     ports:
       - 3103:5001
     volumes:
@@ -69,29 +99,62 @@ services:
       - envs/identity.env
     networks:
       - local
+    healthcheck:
+      test: curl --fail https://localhost:5001/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
     depends_on:    
-      - db
+      identity-db:
+        condition: service_healthy      
+      seq:
+        condition: service_started
   seq:
     restart: unless-stopped
     image: datalust/seq
+    volumes:
+      - ./certs/https:/https
+      - ./certs/ca:/usr/local/share/ca-certificates
+      - ./seq:/seqinit
     env_file:
       - envs/seq.env
     ports:
-      - 3104:80
-      - 3105:5341      
+      - 3104:443
+      - 3105:45341
     networks:
-      - local
-  db:
+      - local    
+  identity-db:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - 3106:1433
     env_file:
       - envs/mssql.env
-    container_name: sqldb
-    hostname: sqldb    
+    container_name: sqldb-identity
+    hostname: sqldb-identity
     networks:
       - local
-    depends_on:
-      - seq
-  
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
+  api-db:
+    restart: unless-stopped
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 3107:1433
+    env_file:
+      - envs/mssql.env
+    container_name: sqldb-api
+    hostname: sqldb-api
+    networks:
+      - local
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
