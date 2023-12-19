@@ -30,15 +30,15 @@ services:
       start_period: 10s  
   bff:  
     restart: unless-stopped
-    build:
-      context: ../bff/src/simple-budget.bff
-      target: dev
-      dockerfile: Dockerfile.dev
-    image: bff-dev
+    image: bff
     ports:
       - 3101:5290
     volumes:
       - ../bff/src/simple-budget.bff:/app/src
+      - ./certs/https:/https
+      - ./certs/ca:/usr/local/share/ca-certificates
+      - /app/src/bin
+      - /app/src/obj
     env_file:
       - envs/bff.env
     networks:
@@ -58,7 +58,7 @@ services:
       start_period: 10s  
   api: 
     restart: unless-stopped
-    image: api-dev:0.0.1
+    image: api
     ports:
       - 3102:5036
     volumes:
@@ -86,9 +86,7 @@ services:
       start_period: 10s  
   identity: 
     restart: unless-stopped
-    image: identity-dev:0.0.3
-    stdin_open: true
-    tty: true
+    image: identity
     ports:
       - 3103:5001
     volumes:
@@ -133,8 +131,8 @@ services:
       - 3106:1433
     env_file:
       - envs/mssql.env
-    container_name: sqldb
-    hostname: sqldb    
+    container_name: sqldb-identity
+    hostname: sqldb-identity
     networks:
       - local
     healthcheck:
@@ -150,8 +148,8 @@ services:
       - 3107:1433
     env_file:
       - envs/mssql.env
-    container_name: sqldb
-    hostname: sqldb    
+    container_name: sqldb-api
+    hostname: sqldb-api
     networks:
       - local
     healthcheck:
