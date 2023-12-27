@@ -92,10 +92,13 @@ services:
       - 3103:5001
     volumes:
       - ../identity/src/asg.identity:/app/src
+      - ../identity/src/asg.data:/app/asg.data
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
       - /app/src/bin
       - /app/src/obj
+      - /app/asg.data/bin
+      - /app/asg.data/obj
     env_file:
       - envs/identity.env
     networks:
@@ -111,20 +114,29 @@ services:
         condition: service_healthy      
       seq:
         condition: service_started
-  seq:
-    restart: unless-stopped
-    image: datalust/seq
-    volumes:
-      - ./certs/https:/https
-      - ./certs/ca:/usr/local/share/ca-certificates
-      - ./seq:/seqinit
+      identitydbmigrator:
+        condition: service_completed_successfully
+  identitydbmigrator:    
+    image: identitydbmigrator
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
     env_file:
-      - envs/seq.env
-    ports:
-      - 3104:443
-      - 3105:45341
+      - envs/identitydbmigrator.env
     networks:
-      - local    
+      - local
+    volumes:
+      - ../identity/src/asg.data.migrator:/app/src/asg.data.migrator
+      - ../identity/src/asg.data:/app/src/asg.data
+      - /app/src/asg.data.migrator/bin
+      - /app/src/asg.data.migrator/obj
+      - /app/src/asg.data/bin
+      - /app/src/asg.data/obj
+      - ./certs/ca:/usr/local/share/ca-certificates
+    depends_on:
+      identity-db:
+        condition: service_healthy  
+      seq:
+        condition: service_started
   identity-db:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -159,4 +171,19 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s
+  seq:
+    restart: unless-stopped
+    image: datalust/seq
+    volumes:
+      - ./certs/https:/https
+      - ./certs/ca:/usr/local/share/ca-certificates
+      - ./seq:/seqinit
+      #- ../data/seq:/data
+    env_file:
+      - envs/seq.env
+    ports:
+      - 3104:443
+      - 3105:45341
+    networks:
+      - local        
   
