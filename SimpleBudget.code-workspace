@@ -1,0 +1,40 @@
+{
+	"folders": [
+		{
+			"name": "Simple Budget",
+			"path": "."
+		},
+		{
+			"Name": "BFF",
+			"path": "../bff"
+		},
+		{
+			"name": "Api",
+			"path": "../api"
+		},
+		{
+			"Name": "Identity Provider",
+			"path": "../identity"
+		},
+		{
+			"name": "React UI",
+			"path": "../ui.react"
+		},
+		{
+			"name": "Redirect Middleware",
+			"path": "../redirect"
+		},
+		{
+			"name": "Web Client",
+			"path": "../WebClient"
+		},
+		{
+			"name": "Nuget Packages",
+			"path": "../packages"
+		},
+		{
+			"name": "Docker Data",
+			"path": "../data"
+		},
+	]
+}
