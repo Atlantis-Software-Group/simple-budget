@@ -21,6 +21,10 @@
 			"path": "../ui.react"
 		},
 		{
+			"name": "DbMigrator",
+			"path": "../dbMigrator"
+		},
+		{
 			"name": "Redirect Middleware",
 			"path": "../redirect"
 		},
@@ -35,6 +39,6 @@
 		{
 			"name": "Docker Data",
 			"path": "../data"
-		},
+		}
 	]
 }
