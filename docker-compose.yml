@@ -30,16 +30,17 @@ services:
       start_period: 10s  
   bff:  
     restart: unless-stopped
-    image: bff
+    image: dev-net8.0
     ports:
       - 3101:5290
     volumes:
-      - ../bff/src/simple-budget.bff:/app/src
+      - ../bff/src/simple-budget.bff/entrypoint.sh:/app/src/entrypoint.sh
+      - ../bff/src/simple-budget.bff:/app/src/simple-budget.bff
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
-      - ../packages:/app/packages
       - /app/src/bin
       - /app/src/obj
+      - ../packages:/app/packages
     env_file:
       - envs/bff.env
     networks:
@@ -59,15 +60,17 @@ services:
       start_period: 10s  
   api: 
     restart: unless-stopped
-    image: api
+    image: dev-net8.0
     ports:
       - 3102:5036
     volumes:
-      - ../api/src/simple-budget.api:/app/src
+      - ../api/src/simple-budget.api/entrypoint.sh:/app/src/entrypoint.sh
+      - ../api/src/simple-budget.api:/app/src/simple-budget.api
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
       - /app/src/bin
       - /app/src/obj
+      - ../packages:/app/packages
     env_file:
       - envs/api.env      
     networks:
@@ -75,7 +78,7 @@ services:
     depends_on:
       identity:
         condition: service_healthy
-      api-db:
+      apidb:
         condition: service_healthy   
       seq:
         condition: service_started
@@ -84,21 +87,25 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 10s  
+      start_period: 10s 
   identity: 
     restart: unless-stopped
-    image: identity
+    image: dev-net7.0
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
     ports:
       - 3103:5001
     volumes:
-      - ../identity/src/asg.identity:/app/src
-      - ../identity/src/asg.data:/app/asg.data
+      - ../identity/src/asg.identity/entrypoint.sh:/app/src/entrypoint.sh
+      - ../identity/src/asg.identity:/app/src/asg.identity
+      - ../identity/src/asg.identity.data:/app/src/asg.identity.data
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
-      - /app/src/bin
-      - /app/src/obj
-      - /app/asg.data/bin
-      - /app/asg.data/obj
+      - /app/src/asg.identity/bin
+      - /app/src/asg.identity/obj
+      - /app/src/asg.identity.data/bin
+      - /app/src/asg.identity.data/obj
+      - ../packages:/app/packages
     env_file:
       - envs/identity.env
     networks:
@@ -110,14 +117,14 @@ services:
       retries: 10
       start_period: 10s  
     depends_on:    
-      identity-db:
+      identitydb:
         condition: service_healthy      
       seq:
         condition: service_started
       identitydbmigrator:
-        condition: service_completed_successfully
+        condition: service_completed_successfully 
   identitydbmigrator:    
-    image: identitydbmigrator
+    image: dev-net7.0
     stdin_open: true # docker run -i
     tty: true        # docker run -t
     env_file:
@@ -125,19 +132,21 @@ services:
     networks:
       - local
     volumes:
-      - ../identity/src/asg.data.migrator:/app/src/asg.data.migrator
-      - ../identity/src/asg.data:/app/src/asg.data
-      - /app/src/asg.data.migrator/bin
-      - /app/src/asg.data.migrator/obj
-      - /app/src/asg.data/bin
-      - /app/src/asg.data/obj
+      - ../identity/src/asg.identity.data.migrator/entrypoint.sh:/app/src/entrypoint.sh
+      - ../identity/src/asg.identity.data.migrator/:/app/src/asg.identity.data.migrator
+      - ../identity/src/asg.identity.data:/app/src/asg.identity.data
+      - /app/src/asg.identity.data.migrator/bin
+      - /app/src/asg.identity.data.migrator/obj
+      - /app/src/asg.identity.data/bin
+      - /app/src/asg.identity.data/obj
       - ./certs/ca:/usr/local/share/ca-certificates
+      - ../packages:/app/packages
     depends_on:
-      identity-db:
+      identitydb:
         condition: service_healthy  
       seq:
         condition: service_started
-  identity-db:
+  identitydb:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
@@ -154,7 +163,7 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s  
-  api-db:
+  apidb:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
@@ -170,7 +179,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 10s
+      start_period: 10s       
   seq:
     restart: unless-stopped
     image: datalust/seq
@@ -185,5 +194,4 @@ services:
       - 3104:443
       - 3105:45341
     networks:
-      - local        
-  
+      - local   
