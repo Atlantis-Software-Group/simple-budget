@@ -3,38 +3,39 @@ networks:
   local:
     name: local
 services:
-  react-ui:
-    restart: unless-stopped
-    build: 
-      context: ../ui.react
-      target: dev
-      dockerfile: Dockerfile.dev
-    image: ui-react-dev
-    ports: 
-      - 3100:3100
-    volumes:
-      - ../ui.react:/usr/src/app    
-      - /usr/src/app/node_modules
-    env_file:
-      - envs/ui.env
-    networks:
-      - local
-    depends_on:
-      bff:
-        condition: service_healthy
-    healthcheck:
-      test: curl --fail https://localhost:5001/health || exit 1
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 10s  
+  # react-ui:
+  #   restart: unless-stopped
+  #   build: 
+  #     context: ../ui.react
+  #     target: dev
+  #     dockerfile: Dockerfile.dev
+  #   image: ui-react-dev
+  #   ports: 
+  #     - 3100:3100
+  #   volumes:
+  #     - ../ui.react:/usr/src/app    
+  #     - /usr/src/app/node_modules
+  #   env_file:
+  #     - envs/ui.env
+  #   networks:
+  #     - local
+  #   depends_on:
+  #     bff:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: curl --fail https://localhost:5001/health || exit 1
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 10
+  #     start_period: 10s  
   bff:  
     restart: unless-stopped
-    image: dev-net8.0
+    image: simplebudget/bff:0.0.17
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
     ports:
       - 3101:5290
     volumes:
-      - ../bff/src/simple-budget.bff/entrypoint.sh:/app/src/entrypoint.sh
       - ../bff/src/simple-budget.bff:/app/src/simple-budget.bff
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
@@ -60,11 +61,12 @@ services:
       start_period: 10s  
   api: 
     restart: unless-stopped
-    image: dev-net8.0
+    image: simplebudget/api:0.0.17
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
     ports:
       - 3102:5036
     volumes:
-      - ../api/src/simple-budget.api/entrypoint.sh:/app/src/entrypoint.sh
       - ../api/src/simple-budget.api:/app/src/simple-budget.api
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
@@ -90,17 +92,14 @@ services:
       start_period: 10s 
   identity: 
     restart: unless-stopped
-    image: dev-net7.0
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
+    image: simplebudget/identity:0.0.17
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
     ports:
       - 3103:5001
     volumes:
-      - ../identity/src/asg.identity/entrypoint.sh:/app/src/entrypoint.sh
       - ../identity/src/asg.identity:/app/src/asg.identity
       - ../identity/src/asg.identity.data:/app/src/asg.identity.data
-      - ./certs/https:/https
-      - ./certs/ca:/usr/local/share/ca-certificates
       - /app/src/asg.identity/bin
       - /app/src/asg.identity/obj
       - /app/src/asg.identity.data/bin
@@ -123,23 +122,40 @@ services:
         condition: service_started
       identitydbmigrator:
         condition: service_completed_successfully 
-  identitydbmigrator:    
-    image: dev-net7.0
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
+  identitydbmigrator-watch:    
+    image: simplebudget/identity/dbmigrator:watch-0.0.17
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
     env_file:
       - envs/identitydbmigrator.env
     networks:
       - local
     volumes:
-      - ../identity/src/asg.identity.data.migrator/entrypoint.sh:/app/src/entrypoint.sh
       - ../identity/src/asg.identity.data.migrator/:/app/src/asg.identity.data.migrator
       - ../identity/src/asg.identity.data:/app/src/asg.identity.data
       - /app/src/asg.identity.data.migrator/bin
       - /app/src/asg.identity.data.migrator/obj
       - /app/src/asg.identity.data/bin
       - /app/src/asg.identity.data/obj
-      - ./certs/ca:/usr/local/share/ca-certificates
+      - ../packages:/app/packages
+    depends_on:
+      identitydbmigrator:
+        condition: service_completed_successfully 
+  identitydbmigrator:    
+    image: simplebudget/identity/dbmigrator:migrate-0.0.17
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
+    env_file:
+      - envs/identitydbmigrator.env
+    networks:
+      - local
+    volumes:
+      - ../identity/src/asg.identity.data.migrator/:/app/src/asg.identity.data.migrator
+      - ../identity/src/asg.identity.data:/app/src/asg.identity.data
+      - /app/src/asg.identity.data.migrator/bin
+      - /app/src/asg.identity.data.migrator/obj
+      - /app/src/asg.identity.data/bin
+      - /app/src/asg.identity.data/obj
       - ../packages:/app/packages
     depends_on:
       identitydb:
@@ -151,6 +167,8 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - 3106:1433
+    volumes:
+    - ../data/identitydb:/var/opt/mssql/data
     env_file:
       - envs/mssql.env
     container_name: sqldb-identity
@@ -168,6 +186,8 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - 3107:1433
+    volumes:
+    - ../data/apidb:/var/opt/mssql/data
     env_file:
       - envs/mssql.env
     container_name: sqldb-api
@@ -187,7 +207,7 @@ services:
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
       - ./seq:/seqinit
-      #- ../data/seq:/data
+      - ../data/seq:/data
     env_file:
       - envs/seq.env
     ports:
