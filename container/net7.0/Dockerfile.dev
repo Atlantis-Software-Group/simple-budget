@@ -1,6 +1,0 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS dev
-
-WORKDIR /app
-COPY ./entrypoint.sh .
-RUN chmod 755 ./entrypoint.sh
-ENTRYPOINT [ "sh", "./entrypoint.sh" ]
