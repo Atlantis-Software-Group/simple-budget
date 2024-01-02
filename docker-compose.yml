@@ -30,7 +30,7 @@ services:
   #     start_period: 10s  
   bff:  
     restart: unless-stopped
-    image: simplebudget/bff:0.0.18
+    image: simplebudget/bff:1.0.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -61,7 +61,7 @@ services:
       start_period: 10s  
   api: 
     restart: unless-stopped
-    image: simplebudget/api:0.0.18
+    image: simplebudget/api:1.0.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -92,7 +92,7 @@ services:
       start_period: 10s 
   identity: 
     restart: unless-stopped
-    image: simplebudget/identity:0.0.18
+    image: simplebudget/identity:1.0.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -123,7 +123,7 @@ services:
       identitydbmigrator:
         condition: service_completed_successfully 
   identitydbmigrator-watch:    
-    image: simplebudget/identity/dbmigrator:watch-0.0.18
+    image: simplebudget/identity/dbmigrator:watch-1.0.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -142,7 +142,7 @@ services:
       identitydbmigrator:
         condition: service_completed_successfully 
   identitydbmigrator:    
-    image: simplebudget/identity/dbmigrator:migrate-0.0.18
+    image: simplebudget/identity/dbmigrator:migrate-1.0.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
