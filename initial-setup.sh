@@ -43,8 +43,8 @@ rm dockerlog4.txt
 rm dockerlog5.txt
 rm dockerlog6.txt
 
-CURRENT_VERSION="0.0.16"
-NEW_VERSION="0.0.17"
+CURRENT_VERSION="0.0.17"
+NEW_VERSION="0.0.18"
 
 echo -e "${YELLOW}Building Identity Db Migrator - Base image${NC}"
 docker build -t simplebudget/identity/dbmigrator:${NEW_VERSION} -f ./identity/src/asg.identity.data.migrator/containers/dockerfile.dev . >> dockerlog1.txt
