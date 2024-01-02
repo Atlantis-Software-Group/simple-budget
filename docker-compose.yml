@@ -168,7 +168,7 @@ services:
     ports:
       - 3106:1433
     volumes:
-    - ../data/identitydb:/var/opt/mssql/data
+    - ../data/identitydb/data:/var/opt/mssql/data
     env_file:
       - envs/mssql.env
     container_name: sqldb-identity
@@ -187,7 +187,7 @@ services:
     ports:
       - 3107:1433
     volumes:
-    - ../data/apidb:/var/opt/mssql/data
+    - ../data/apidb/data:/var/opt/mssql/data
     env_file:
       - envs/mssql.env
     container_name: sqldb-api
