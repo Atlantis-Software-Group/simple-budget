@@ -99,8 +99,8 @@ services:
     networks:
       - local
     volumes:
-      - ../simple-budget.api/src/simple-budget.api.data.migrator/:/app/src/simple-budget.api.data.migrator
-      - ../simple-budget.api/src/simple-budget.api.data:/app/src/simple-budget.api.data
+      - ../api/src/simple-budget.api.data.migrator/:/app/src/simple-budget.api.data.migrator
+      - ../api/src/simple-budget.api.data:/app/src/simple-budget.api.data
       - /app/src/simple-budget.api.data.migrator/bin
       - /app/src/simple-budget.api.data.migrator/obj
       - /app/src/simple-budget.api.data/bin
@@ -118,8 +118,8 @@ services:
     networks:
       - local
     volumes:
-      - ../simple-budget.api/src/simple-budget.api.data.migrator/:/app/src/simple-budget.api.data.migrator
-      - ../simple-budget.api/src/simple-budget.api.data:/app/src/simple-budget.api.data
+      - ../api/src/simple-budget.api.data.migrator/:/app/src/simple-budget.api.data.migrator
+      - ../api/src/simple-budget.api.data:/app/src/simple-budget.api.data
       - /app/src/simple-budget.api.data.migrator/bin
       - /app/src/simple-budget.api.data.migrator/obj
       - /app/src/simple-budget.api.data/bin
