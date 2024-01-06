@@ -1,4 +1,8 @@
 #!/bin/sh
+
+CURRENT_VERSION="0.0.18"
+NEW_VERSION="1.0.0"
+
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
@@ -43,9 +47,7 @@ rm dockerlog4.txt
 rm dockerlog5.txt
 rm dockerlog6.txt
 
-CURRENT_VERSION="0.0.18"
-NEW_VERSION="1.0.0"
-
+### Identity DB Migrator
 echo -e "${YELLOW}Building Identity Db Migrator - Base image${NC}"
 docker build -t simplebudget/identity/dbmigrator:${NEW_VERSION} -f ./identity/src/asg.identity.data.migrator/containers/dockerfile.dev . >> dockerlog1.txt
 echo -e "${YELLOW}Identity Db Migrator image: identity/dbmigrator:${NEW_VERSION} is ready. ${NC}"
@@ -74,6 +76,8 @@ CURRENT_WATCH_IMAGE_NAME="simplebudget\/identity\/dbmigrator:watch-${CURRENT_VER
 NEW_WATCH_IMAGE_NAME="simplebudget\/identity\/dbmigrator:watch-${NEW_VERSION}"
 sed -i "s/$CURRENT_WATCH_IMAGE_NAME/$NEW_WATCH_IMAGE_NAME/g" ./simple-budget/docker-compose.yml
 
+### Identity
+
 echo -e "${YELLOW}Building Identity image${NC}"
 docker build -t simplebudget/identity:${NEW_VERSION} -f ./identity/src/asg.identity/containers/dockerfile.dev . >> dockerlog4.txt
 echo -e "${YELLOW}Identity image: identity:${NEW_VERSION} is ready. ${NC}"
@@ -83,6 +87,38 @@ CURRENT_IDENTITY_IMAGE_NAME="simplebudget\/identity:${CURRENT_VERSION}"
 NEW_IDENTITY_IMAGE_NAME="simplebudget\/identity:${NEW_VERSION}"
 sed -i "s/$CURRENT_IDENTITY_IMAGE_NAME/$NEW_IDENTITY_IMAGE_NAME/g" ./simple-budget/docker-compose.yml
 
+### Api DB Migrator - Base Image
+echo -e "${YELLOW}Building Api Db Migrator - Base image${NC}"
+docker build -t simplebudget/api/dbmigrator:${NEW_VERSION} -f ./api/src/simple-budget.api.data.migrator/containers/dockerfile.dev . >> dockerlog1.txt
+echo -e "${YELLOW}Api Db Migrator image: api/dbmigrator:${NEW_VERSION} is ready. ${NC}"
+
+echo -e "${YELLOW}Updating base image version${NC}"
+sed -i "s/$CURRENT_VERSION/$NEW_VERSION/g" ./api/src/simple-budget.api.data.migrator/containers/migrate/dockerfile.dev
+
+### Api DB Migrator - Migrate Image
+echo -e "${YELLOW}Building Api Db Migrator - Migrate image${NC}"
+docker build -t simplebudget/api/dbmigrator:migrate-${NEW_VERSION} -f ./api/src/simple-budget.api.data.migrator/containers/migrate/dockerfile.dev . >> dockerlog2.txt
+echo -e "${YELLOW}Api Db Migrator image: apidbmigrator:migrate-${NEW_VERSION} is ready. ${NC}"
+
+echo -e "${YELLOW}Updating docker-compose.yml - DbMigrator Migrate${NC}"
+CURRENT_MIGRATE_IMAGE_NAME="simplebudget\/api\/dbmigrator:migrate-${CURRENT_VERSION}"
+NEW_MIGRATE_IMAGE_NAME="simplebudget\/api\/dbmigrator:migrate-${NEW_VERSION}"
+sed -i "s/$CURRENT_MIGRATE_IMAGE_NAME/$NEW_MIGRATE_IMAGE_NAME/g" ./simple-budget/docker-compose.yml
+
+### Api DB Migrator - Watch Image
+echo -e "${YELLOW}Updating base image version${NC}"
+sed -i "s/$CURRENT_VERSION/$NEW_VERSION/g" ./api/src/simple-budget.api.data.migrator/containers/watch/dockerfile.dev
+
+echo -e "${YELLOW}Building Identity Db Migrator - Watch image${NC}"
+docker build -t simplebudget/identity/dbmigrator:watch-${NEW_VERSION} -f ./api/src/simple-budget.api.data.migrator/containers/watch/dockerfile.dev . >> dockerlog3.txt
+echo -e "${YELLOW}API Db Migrator image: apidbmigrator:watch-${NEW_VERSION} is ready. ${NC}"
+
+echo -e "${YELLOW}Updating docker-compose.yml - DbMigrator Watch${NC}"
+CURRENT_WATCH_IMAGE_NAME="simplebudget\/api\/dbmigrator:watch-${CURRENT_VERSION}"
+NEW_WATCH_IMAGE_NAME="simplebudget\/api\/dbmigrator:watch-${NEW_VERSION}"
+sed -i "s/$CURRENT_WATCH_IMAGE_NAME/$NEW_WATCH_IMAGE_NAME/g" ./simple-budget/docker-compose.yml
+
+### API
 echo -e "${YELLOW}Building API image${NC}"
 docker build -t simplebudget/api:${NEW_VERSION} -f ./api/src/simple-budget.api/containers/dockerfile.dev . >> dockerlog5.txt
 echo -e "${YELLOW}Api image: simplebudget/api:${NEW_VERSION} is ready. ${NC}"
@@ -91,6 +127,8 @@ echo -e "${YELLOW}Updating docker-compose.yml - Api${NC}"
 CURRENT_IDENTITY_IMAGE_NAME="simplebudget\/api:${CURRENT_VERSION}"
 NEW_IDENTITY_IMAGE_NAME="simplebudget\/api:${NEW_VERSION}"
 sed -i "s/$CURRENT_IDENTITY_IMAGE_NAME/$NEW_IDENTITY_IMAGE_NAME/g" ./simple-budget/docker-compose.yml
+
+### BFF
 
 echo -e "${YELLOW}Building BFF image${NC}"
 docker build -t simplebudget/bff:${NEW_VERSION} -f ./bff/src/simple-budget.bff/containers/dockerfile.dev . >> dockerlog6.txt
