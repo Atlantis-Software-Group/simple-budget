@@ -30,7 +30,7 @@ services:
   #     start_period: 10s  
   bff:  
     restart: unless-stopped
-    image: simplebudget/bff:1.0.0
+    image: simplebudget/bff:1.1.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -61,7 +61,7 @@ services:
       start_period: 10s  
   api: 
     restart: unless-stopped
-    image: simplebudget/api:1.0.0
+    image: simplebudget/api:1.1.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -84,6 +84,8 @@ services:
         condition: service_started
       apidbmigrator:
         condition: service_completed_successfully   
+      apidbmigrator-watch:
+        condition: service_started
     healthcheck:
       test: curl --fail https://localhost:5036/health || exit 1
       interval: 10s
@@ -91,7 +93,7 @@ services:
       retries: 10
       start_period: 10s 
   apidbmigrator-watch:    
-    image: simplebudget/api/dbmigrator:watch-1.0.0
+    image: simplebudget/api/dbmigrator:watch-1.1.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -110,7 +112,7 @@ services:
       identitydbmigrator:
         condition: service_completed_successfully 
   apidbmigrator:    
-    image: simplebudget/api/dbmigrator:migrate-1.0.0
+    image: simplebudget/api/dbmigrator:migrate-1.1.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -132,7 +134,7 @@ services:
         condition: service_started    
   identity: 
     restart: unless-stopped
-    image: simplebudget/identity:1.0.0
+    image: simplebudget/identity:1.1.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -162,8 +164,10 @@ services:
         condition: service_started
       identitydbmigrator:
         condition: service_completed_successfully 
+      identitydbmigrator-watch:
+        condition: service_started
   identitydbmigrator-watch:    
-    image: simplebudget/identity/dbmigrator:watch-1.0.0
+    image: simplebudget/identity/dbmigrator:watch-1.1.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -182,7 +186,7 @@ services:
       identitydbmigrator:
         condition: service_completed_successfully 
   identitydbmigrator:    
-    image: simplebudget/identity/dbmigrator:migrate-1.0.0
+    image: simplebudget/identity/dbmigrator:migrate-1.1.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
