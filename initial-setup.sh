@@ -1,18 +1,19 @@
 #!/bin/sh
 
-CURRENT_VERSION="1.0.0"
-NEW_VERSION="1.1.0"
+CURRENT_VERSION="1.7.0"
+NEW_VERSION="1.8.0"
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 MainFunction() 
 {
     cd ..
-    # DeletePreviousOutput
-    # BuildLocalNugetPackages
-    # BuildDockerImages
-    StartDockerServices
-    StartFirefox
+    find . -type d -name bin -prune -exec -rm -rf {} \;
+    find . -type d -name obj -prune -exec -rm -rf {} \;
+    DeletePreviousOutput
+    BuildLocalNugetPackages
+    BuildDockerImages
+    StartVsCode
 }
 
 DeletePreviousOutput() {
@@ -45,9 +46,15 @@ BuildPackage() {
     dotnet build $2 -c Debug >> output.log
 }
 
-BuildDockerImages() {
+BuildDockerImages() {    
+    BuildDockerImage "simplebudget/bff:${NEW_VERSION}" "./bff/src/simple-budget.bff/containers/dockerfile.dev"  
+    UpdateDockerCompose "BFF Image" "simplebudget\/bff:" 
+
+    BuildDockerImage "simplebudget/api:${NEW_VERSION}" "./api/src/simple-budget.api/containers/dockerfile.dev"   
+    UpdateDockerCompose "Api Image" "simplebudget\/api:"
+
     BuildDockerImage "simplebudget/identity:${NEW_VERSION}" "./identity/src/asg.identity/containers/dockerfile.dev"       
-    UpdateDockerCompose "Identity Image" "simplebudget\/identity"
+    UpdateDockerCompose "Identity Image" "simplebudget\/identity:"
 
     BuildDockerImage "simplebudget/identity/dbmigrator:${NEW_VERSION}" "./identity/src/asg.identity.data.migrator/containers/dockerfile.dev"
     
@@ -59,9 +66,6 @@ BuildDockerImages() {
     BuildDockerImage "simplebudget/identity/dbmigrator:watch-${NEW_VERSION}" "./identity/src/asg.identity.data.migrator/containers/watch/dockerfile.dev"
     UpdateDockerCompose "Identity Db Migrator Watch Image" "simplebudget\/identity\/dbmigrator:watch-"
 
-    BuildDockerImage "simplebudget/api:${NEW_VERSION}" "./api/src/simple-budget.api/containers/dockerfile.dev"   
-    UpdateDockerCompose "Api Image" "simplebudget\/api"
-
     BuildDockerImage "simplebudget/api/dbmigrator:${NEW_VERSION}" "./api/src/simple-budget.api.data.migrator/containers/dockerfile.dev"
     
     UpdateBaseImageVersion ./api/src/simple-budget.api.data.migrator/containers/migrate/dockerfile.dev
@@ -71,9 +75,6 @@ BuildDockerImages() {
     UpdateBaseImageVersion ./api/src/simple-budget.api.data.migrator/containers/watch/dockerfile.dev
     BuildDockerImage "simplebudget/api/dbmigrator:watch-${NEW_VERSION}" "./api/src/simple-budget.api.data.migrator/containers/watch/dockerfile.dev"
     UpdateDockerCompose "Api Db Migrator Watch Image" "simplebudget\/api\/dbmigrator:watch-"
-
-    BuildDockerImage "simplebudget/bff:${NEW_VERSION}" "./bff/src/simple-budget.bff/containers/dockerfile.dev"  
-    UpdateDockerCompose "BFF Image" "simplebudget\/bff" 
 }
 
 # $1 - Image name for logging
@@ -89,24 +90,18 @@ UpdateBaseImageVersion() {
     sed -i "s/$CURRENT_VERSION/$NEW_VERSION/g" $1
 }
 
-#simplebudget\/identity\/dbmigrator:migrate
 UpdateDockerCompose() {    
     echo -e "${YELLOW}Updating Docker-Compose.yml $1 ${NC}"
-    CURRENT_MIGRATE_IMAGE_NAME="$2:${CURRENT_VERSION}"
-    NEW_MIGRATE_IMAGE_NAME="$2:${NEW_VERSION}"
+    CURRENT_MIGRATE_IMAGE_NAME="$2${CURRENT_VERSION}"
+    NEW_MIGRATE_IMAGE_NAME="$2${NEW_VERSION}"
     sed -i "s/$CURRENT_MIGRATE_IMAGE_NAME/$NEW_MIGRATE_IMAGE_NAME/g" ./simple-budget/docker-compose.yml    
 }
 
-StartDockerServices() {
-    echo -e "${YELLOW}Starting Docker Services ${NC}"
+StartVsCode() {
+    echo -e "${YELLOW}Starting VsCode SimpleBudget multi-root workspace${NC}"
+    echo -e "${YELLOW}use launch-services.sh to start docker services${NC}"
     cd simple-budget
-    docker-compose up -d --wait
-}
-
-StartFirefox() {
-    echo -e "${YELLOW}Starting Web browser ${NC}"
-    #start firefox https://localhost:3100 https://localhost:3101/swagger https://localhost:3102/swagger https://localhost:3103
-    start firefox https://localhost:3101/swagger https://localhost:3102/swagger https://localhost:3103 https://localhost:3104
+    code SimpleBudget.code-workspace
 }
 
 MainFunction
