@@ -30,7 +30,7 @@ services:
   #     start_period: 10s  
   bff:  
     restart: unless-stopped
-    image: simplebudget/bff:1.1.0
+    image: simplebudget/bff:1.8.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -51,8 +51,6 @@ services:
         condition: service_healthy
       api:
         condition: service_healthy   
-      seq:
-        condition: service_started
     healthcheck:
       test: curl --fail https://localhost:5290/health || exit 1
       interval: 10s
@@ -61,17 +59,20 @@ services:
       start_period: 10s  
   api: 
     restart: unless-stopped
-    image: simplebudget/api:1.1.0
+    image: simplebudget/api:1.8.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
       - 3102:5036
     volumes:
       - ../api/src/simple-budget.api:/app/src/simple-budget.api
+      - ../api/src/simple-budget.api.data:/app/src/simpe-budget.api.data
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
-      - /app/src/bin
-      - /app/src/obj
+      - /app/src/simple-budget.api/bin
+      - /app/src/simple-budget.api/obj
+      - /app/src/simple-budget.api.data/bin
+      - /app/src/simple-budget.api.data/obj
       - ../packages:/app/packages
     env_file:
       - envs/api.env      
@@ -80,10 +81,6 @@ services:
     depends_on:
       identity:
         condition: service_healthy 
-      seq:
-        condition: service_started
-      apidbmigrator:
-        condition: service_completed_successfully   
       apidbmigrator-watch:
         condition: service_started
     healthcheck:
@@ -93,7 +90,7 @@ services:
       retries: 10
       start_period: 10s 
   apidbmigrator-watch:    
-    image: simplebudget/api/dbmigrator:watch-1.1.0
+    image: simplebudget/api/dbmigrator:watch-1.8.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -109,10 +106,10 @@ services:
       - /app/src/simple-budget.api.data/obj
       - ../packages:/app/packages
     depends_on:
-      identitydbmigrator:
+      apidbmigrator:
         condition: service_completed_successfully 
   apidbmigrator:    
-    image: simplebudget/api/dbmigrator:migrate-1.1.0
+    image: simplebudget/api/dbmigrator:migrate-1.8.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -129,12 +126,10 @@ services:
       - ../packages:/app/packages
     depends_on:
       apidb:
-        condition: service_healthy  
-      seq:
-        condition: service_started    
+        condition: service_healthy   
   identity: 
     restart: unless-stopped
-    image: simplebudget/identity:1.1.0
+    image: simplebudget/identity:1.8.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -158,16 +153,10 @@ services:
       retries: 10
       start_period: 10s  
     depends_on:    
-      identitydb:
-        condition: service_healthy      
-      seq:
-        condition: service_started
-      identitydbmigrator:
-        condition: service_completed_successfully 
       identitydbmigrator-watch:
         condition: service_started
   identitydbmigrator-watch:    
-    image: simplebudget/identity/dbmigrator:watch-1.1.0
+    image: simplebudget/identity/dbmigrator:watch-1.8.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -186,7 +175,7 @@ services:
       identitydbmigrator:
         condition: service_completed_successfully 
   identitydbmigrator:    
-    image: simplebudget/identity/dbmigrator:migrate-1.1.0
+    image: simplebudget/identity/dbmigrator:migrate-1.8.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -204,8 +193,6 @@ services:
     depends_on:
       identitydb:
         condition: service_healthy  
-      seq:
-        condition: service_started
   identitydb:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -220,11 +207,14 @@ services:
     networks:
       - local
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 10s  
+      start_period: 20s  
+    depends_on:      
+      seq:
+        condition: service_started      
   apidb:
     restart: unless-stopped
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -239,11 +229,14 @@ services:
     networks:
       - local
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 10s       
+      start_period: 20s 
+    depends_on:      
+      seq:
+        condition: service_started      
   seq:
     restart: unless-stopped
     image: datalust/seq
