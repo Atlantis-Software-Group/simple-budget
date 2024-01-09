@@ -3,34 +3,26 @@ networks:
   local:
     name: local
 services:
-  # react-ui:
-  #   restart: unless-stopped
-  #   build: 
-  #     context: ../ui.react
-  #     target: dev
-  #     dockerfile: Dockerfile.dev
-  #   image: ui-react-dev
-  #   ports: 
-  #     - 3100:3100
-  #   volumes:
-  #     - ../ui.react:/usr/src/app    
-  #     - /usr/src/app/node_modules
-  #   env_file:
-  #     - envs/ui.env
-  #   networks:
-  #     - local
-  #   depends_on:
-  #     bff:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: curl --fail https://localhost:5001/health || exit 1
-  #     interval: 10s
-  #     timeout: 3s
-  #     retries: 10
-  #     start_period: 10s  
+  react-ui:
+    restart: unless-stopped
+    image: simplebudget/react-ui:1.12.0
+    ports: 
+      - 3100:3100
+    volumes:
+      - ../ui.react:/usr/src/app 
+      - ./certs/asg.dev.crt:/usr/src/ssl/asg.dev.crt
+      - ./certs/asg.dev.key:/usr/src/ssl/asg.dev.key
+      - /usr/src/app/node_modules
+    env_file:
+      - envs/ui.env
+    networks:
+      - local
+    # depends_on:
+    #   bff:
+    #     condition: service_healthy
   bff:  
     restart: unless-stopped
-    image: simplebudget/bff:1.8.0
+    image: simplebudget/bff:1.12.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -39,8 +31,8 @@ services:
       - ../bff/src/simple-budget.bff:/app/src/simple-budget.bff
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
-      - /app/src/bin
-      - /app/src/obj
+      - /app/src/simple-budget.bff/bin
+      - /app/src/simple-budget.bff/obj
       - ../packages:/app/packages
     env_file:
       - envs/bff.env
@@ -59,7 +51,7 @@ services:
       start_period: 10s  
   api: 
     restart: unless-stopped
-    image: simplebudget/api:1.8.0
+    image: simplebudget/api:1.12.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -90,7 +82,7 @@ services:
       retries: 10
       start_period: 10s 
   apidbmigrator-watch:    
-    image: simplebudget/api/dbmigrator:watch-1.8.0
+    image: simplebudget/api/dbmigrator-watch:1.12.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -109,7 +101,7 @@ services:
       apidbmigrator:
         condition: service_completed_successfully 
   apidbmigrator:    
-    image: simplebudget/api/dbmigrator:migrate-1.8.0
+    image: simplebudget/api/dbmigrator-migrate:1.12.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -129,7 +121,7 @@ services:
         condition: service_healthy   
   identity: 
     restart: unless-stopped
-    image: simplebudget/identity:1.8.0
+    image: simplebudget/identity:1.12.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     ports:
@@ -156,7 +148,7 @@ services:
       identitydbmigrator-watch:
         condition: service_started
   identitydbmigrator-watch:    
-    image: simplebudget/identity/dbmigrator:watch-1.8.0
+    image: simplebudget/identity/dbmigrator-watch:1.12.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:
@@ -175,7 +167,7 @@ services:
       identitydbmigrator:
         condition: service_completed_successfully 
   identitydbmigrator:    
-    image: simplebudget/identity/dbmigrator:migrate-1.8.0
+    image: simplebudget/identity/dbmigrator-migrate:1.12.0
     # stdin_open: true # docker run -i
     # tty: true        # docker run -t
     env_file:

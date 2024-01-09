@@ -1,19 +1,23 @@
 #!/bin/sh
 
-CURRENT_VERSION="1.7.0"
-NEW_VERSION="1.8.0"
+CURRENT_VERSION="1.10.0"
+NEW_VERSION="1.12.0"
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 MainFunction() 
 {
     cd ..
-    find . -type d -name bin -prune -exec -rm -rf {} \;
-    find . -type d -name obj -prune -exec -rm -rf {} \;
+    DeleteFolders
     DeletePreviousOutput
     BuildLocalNugetPackages
     BuildDockerImages
     StartVsCode
+}
+DeleteFolders() {
+    echo -e "${YELLOW}Cleaning up bin and obj folders${NC}"
+    find . -type d -name bin -prune -exec -rm -rf {} \; >> output.log 2>&1
+    find . -type d -name obj -prune -exec -rm -rf {} \; >> output.log 2>&1
 }
 
 DeletePreviousOutput() {
@@ -47,6 +51,9 @@ BuildPackage() {
 }
 
 BuildDockerImages() {    
+    BuildDockerImage "simplebudget/react-ui:${NEW_VERSION}" "./ui.react/Dockerfile.dev"
+    UpdateDockerCompose "UI.React Image" "simplebudget\/react-ui:" 
+
     BuildDockerImage "simplebudget/bff:${NEW_VERSION}" "./bff/src/simple-budget.bff/containers/dockerfile.dev"  
     UpdateDockerCompose "BFF Image" "simplebudget\/bff:" 
 
@@ -57,24 +64,24 @@ BuildDockerImages() {
     UpdateDockerCompose "Identity Image" "simplebudget\/identity:"
 
     BuildDockerImage "simplebudget/identity/dbmigrator:${NEW_VERSION}" "./identity/src/asg.identity.data.migrator/containers/dockerfile.dev"
-    
-    UpdateBaseImageVersion ./identity/src/asg.identity.data.migrator/containers/migrate/dockerfile.dev
-    BuildDockerImage "simplebudget/identity/dbmigrator:migrate-${NEW_VERSION}" "./identity/src/asg.identity.data.migrator/containers/migrate/dockerfile.dev"
-    UpdateDockerCompose "Identity Db Migrator Migrate Image" "simplebudget\/identity\/dbmigrator:migrate-"
-
-    UpdateBaseImageVersion ./identity/src/asg.identity.data.migrator/containers/watch/dockerfile.dev
-    BuildDockerImage "simplebudget/identity/dbmigrator:watch-${NEW_VERSION}" "./identity/src/asg.identity.data.migrator/containers/watch/dockerfile.dev"
-    UpdateDockerCompose "Identity Db Migrator Watch Image" "simplebudget\/identity\/dbmigrator:watch-"
-
     BuildDockerImage "simplebudget/api/dbmigrator:${NEW_VERSION}" "./api/src/simple-budget.api.data.migrator/containers/dockerfile.dev"
     
+    UpdateBaseImageVersion ./identity/src/asg.identity.data.migrator/containers/migrate/dockerfile.dev
+    BuildDockerImage "simplebudget/identity/dbmigrator-migrate:${NEW_VERSION}" "./identity/src/asg.identity.data.migrator/containers/migrate/dockerfile.dev"
+    UpdateDockerCompose "Identity Db Migrator Migrate Image" "simplebudget\/identity\/dbmigrator-migrate:"
+
+    UpdateBaseImageVersion ./identity/src/asg.identity.data.migrator/containers/watch/dockerfile.dev
+    BuildDockerImage "simplebudget/identity/dbmigrator-watch:${NEW_VERSION}" "./identity/src/asg.identity.data.migrator/containers/watch/dockerfile.dev"
+    UpdateDockerCompose "Identity Db Migrator Watch Image" "simplebudget\/identity\/dbmigrator-watch:"
+
+    
     UpdateBaseImageVersion ./api/src/simple-budget.api.data.migrator/containers/migrate/dockerfile.dev
-    BuildDockerImage "simplebudget/api/dbmigrator:migrate-${NEW_VERSION}" "./api/src/simple-budget.api.data.migrator/containers/migrate/dockerfile.dev"
-    UpdateDockerCompose "Api Db Migrator Migrate Image" "simplebudget\/api\/dbmigrator:migrate-"
+    BuildDockerImage "simplebudget/api/dbmigrator-migrate:${NEW_VERSION}" "./api/src/simple-budget.api.data.migrator/containers/migrate/dockerfile.dev"
+    UpdateDockerCompose "Api Db Migrator Migrate Image" "simplebudget\/api\/dbmigrator-migrate:"
 
     UpdateBaseImageVersion ./api/src/simple-budget.api.data.migrator/containers/watch/dockerfile.dev
-    BuildDockerImage "simplebudget/api/dbmigrator:watch-${NEW_VERSION}" "./api/src/simple-budget.api.data.migrator/containers/watch/dockerfile.dev"
-    UpdateDockerCompose "Api Db Migrator Watch Image" "simplebudget\/api\/dbmigrator:watch-"
+    BuildDockerImage "simplebudget/api/dbmigrator-watch:${NEW_VERSION}" "./api/src/simple-budget.api.data.migrator/containers/watch/dockerfile.dev"
+    UpdateDockerCompose "Api Db Migrator Watch Image" "simplebudget\/api\/dbmigrator-watch:"
 }
 
 # $1 - Image name for logging
