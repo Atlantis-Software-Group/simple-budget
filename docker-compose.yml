@@ -58,7 +58,7 @@ services:
       - 3102:5036
     volumes:
       - ../api/src/simple-budget.api:/app/src/simple-budget.api
-      - ../api/src/simple-budget.api.data:/app/src/simpe-budget.api.data
+      - ../api/src/simple-budget.api.data:/app/src/simple-budget.api.data
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
       - /app/src/simple-budget.api/bin
