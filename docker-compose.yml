@@ -190,8 +190,8 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - 3106:1433
-    volumes:
-    - ../data/identitydb/data:/var/opt/mssql/data
+    #volumes:
+    #- ../data/identitydb/data:/var/opt/mssql/data
     env_file:
       - envs/mssql.env
     container_name: sqldb-identity
@@ -212,8 +212,8 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - 3107:1433
-    volumes:
-    - ../data/apidb/data:/var/opt/mssql/data
+    #volumes:
+    #- ../data/apidb/data:/var/opt/mssql/data
     env_file:
       - envs/mssql.env
     container_name: sqldb-api
@@ -236,7 +236,7 @@ services:
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
       - ./seq:/seqinit
-      - ../data/seq:/data
+      #- ../data/seq:/data
     env_file:
       - envs/seq.env
     ports:
