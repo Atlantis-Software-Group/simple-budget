@@ -59,12 +59,15 @@ services:
     volumes:
       - ../api/src/simple-budget.api:/app/src/simple-budget.api
       - ../api/src/simple-budget.api.data:/app/src/simple-budget.api.data
+      - ../api/src/simple-budget.api.interfaces:/app/src/simple-budget.api.interfaces
       - ./certs/https:/https
       - ./certs/ca:/usr/local/share/ca-certificates
       - /app/src/simple-budget.api/bin
       - /app/src/simple-budget.api/obj
       - /app/src/simple-budget.api.data/bin
       - /app/src/simple-budget.api.data/obj
+      - /app/src/simple-budget.api.interfaces/bin
+      - /app/src/simple-budget.api.interfaces/obj
       - ../packages:/app/packages
     env_file:
       - envs/api.env      
